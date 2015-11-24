@@ -69,9 +69,9 @@ unsigned long long bench_get_total() {
 
 int main(int argc, char **argv)
 {
-   ALIGN uint8_t *msgstr;
    int inlen,i,j;
-   ALIGN uint8_t md[64];
+   ALIGN char *msgstr[4];
+   ALIGN uint8_t *md[4];    
 
   
     if(argc != 2){
@@ -81,26 +81,32 @@ int main(int argc, char **argv)
 
     inlen = atoi(argv[1]);
    
-    msgstr = (uint8_t*)_mm_malloc(inlen*sizeof(uint8_t),32);
-       
-   for(i=0;i<inlen;i++){
-      msgstr[i] = (char)(rand()%256);
-    }
-   
+   for(i=0;i<4;i++){
+      msgstr[i] = (char*)_mm_malloc(inlen*sizeof(char),32);
+      md[i]  = (uint8_t*)_mm_malloc(64*sizeof(uint8_t),32);
+  }    
     
-    printf("\nSequential implementation using 128-bit registers.\n\n");    
+    printf("\n 4-way implementation using 256-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
     
     printf("\nSHA3-256.\n");    
-    BENCH_FUNCTION(keccak,msgstr, inlen,md);
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,136);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+    
+    printf("\nSHA3-384.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,104);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+    
+    printf("\nSHA3-512.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,72);
     printf("cycles per bytes :%f\n",(double)total/inlen);
     
     printf("<------------------------------------------------------>\n\n\n");    
 
-
-    
-    _mm_free(msgstr);
-    
+   for(i=0;i<4;i++){
+	  _mm_free(msgstr[i]);
+	  _mm_free(md[i]);
+    }     
    return 0;
    
 }

@@ -85,6 +85,12 @@ int main(int argc, char **argv)
       msgstr[i] = (char*)_mm_malloc(inlen*sizeof(char),32);
       md[i]  = (uint8_t*)_mm_malloc(64*sizeof(uint8_t),32);
   }    
+  
+   for(j=0;j<4;j++){
+    for(i=0;i<inlen;i++){
+      msgstr[j][i] = (char)(rand()%256);
+    }
+   }
     
     printf("\n 4-way implementation using 256-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    

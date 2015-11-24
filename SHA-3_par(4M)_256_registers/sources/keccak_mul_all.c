@@ -762,30 +762,12 @@ switch (rsiz){
   return 0;
 }
 
-// int openmp_256(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3, int t)
+// int Keccak_openmp(char ** in, int inlen, uint8_t ***md, int rsiz)
 // {
 //   int i;
 //   #pragma omp parallel for num_threads(t)
 //      for(i=0;i<t;i++){
-//         keccak_256(in, inlen,md[i],md1[i],md2[i],md3[i]);
+//         keccak(in, inlen,md[i]);
 //      }
 // }
-// 
-// int openmp_384(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
-// {
-//   int i;
-//   #pragma omp parallel for num_threads(4)
-//      for(i=0;i<4;i++){
-//         keccak_384(in, inlen,md[i],md1[i],md2[i],md3[i]);
-//      }
-// }
-// 
-// 
-// int openmp_512(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
-// {
-//   int i;
-//   #pragma omp parallel for num_threads(4)
-//      for(i=0;i<4;i++){
-//         keccak_512(in, inlen,md[i],md1[i],md2[i],md3[i]);
-//      }
-// }
+
