@@ -83,6 +83,9 @@ int main(int argc, char **argv)
    
     msgstr = (uint8_t*)_mm_malloc(inlen*sizeof(uint8_t),32);
     
+    for(i=0;i<inlen;i++){
+      msgstr[i] = (char)(rand()%256);
+    }
     
     printf("\nSequential implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    

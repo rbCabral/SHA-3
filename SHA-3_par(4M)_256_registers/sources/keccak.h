@@ -15,9 +15,8 @@ typedef unsigned long long uInt512[8];
 // compute a keccak hash (md) of given byte length from "in"
 int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen);
 
-int keccak_256(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3);
-int keccak_384(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3);
-int keccak_512	(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3);
+int keccak(char **in_e, int inlen, uint8_t **md, int rsiz);
+
 
 
 

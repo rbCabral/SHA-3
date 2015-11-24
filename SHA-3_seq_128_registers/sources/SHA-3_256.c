@@ -616,17 +616,17 @@ const ALIGN uint64_t RC[48] = {
       break;
     case 72:
       for(i=0;i<it/2;i++){
-	load_one_384(in_temp);
+	load_one_512(in_temp);
 	other_rounds(q);
 	in_temp += 64;
 	
-	load_two_384(in_temp);
+	load_two_512(in_temp);
 	other_rounds(q);
 	in_temp +=80;
       }
   
       if(it%2 != 0 ){
-	load_one_384(in_temp);
+	load_one_512(in_temp);
 	other_rounds(q);
 	in_temp += 72;
       }
@@ -635,7 +635,7 @@ const ALIGN uint64_t RC[48] = {
       memcpy(temp, in_temp, inlen);
       temp[inlen++] = 0x06;
       temp[r - 1] |= 0x80;
-      load_one_384(temp);
+      load_one_512(temp);
       other_rounds(q);
       store(md,0,y0);
       store(md,1,y1);

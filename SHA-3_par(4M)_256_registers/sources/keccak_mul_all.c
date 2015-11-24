@@ -27,10 +27,10 @@
 
 #define join_last(y,p)		\
 				for(y=0;y<p;y++){\
-				  load(ain[4],temp0,y);\
-				  load(ain[5],temp1,y);\
-				  load(ain[6],temp2,y);\
-				  load(ain[7],temp3,y);\
+				  load(ain[4],temp[0],y);\
+				  load(ain[5],temp[1],y);\
+				  load(ain[6],temp[2],y);\
+				  load(ain[7],temp[3],y);\
 				  \
 				  unpackLO_64(ain[0],ain[4],ain[5]);\
 				  unpackHI_64(ain[1],ain[4],ain[5]);\
@@ -57,10 +57,10 @@
 				  xor(s[0+(y*4)],s[0+(y*4)],ain[0]);\
 				  xor(s[1+(y*4)],s[1+(y*4)],ain[1]);\
 				  }\
-				load_128(auxl[0],temp0,y*2);\
-				load_128(auxl[1],temp1,y*2);\
-				load_128(auxl[2],temp2,y*2);\
-				load_128(auxl[3],temp3,y*2);\
+				load_128(auxl[0],temp[0],y*2);\
+				load_128(auxl[1],temp[1],y*2);\
+				load_128(auxl[2],temp[2],y*2);\
+				load_128(auxl[3],temp[3],y*2);\
 				\
 				unpackLO_128_64(auxl[4],auxl[0],auxl[1]);\
 				unpackLO_128_64(auxl[0],auxl[2],auxl[3]);\
@@ -588,7 +588,7 @@
 
 
 
-int keccak_256(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3)
+int keccak(char **in_e, int inlen, uint8_t **md, int rsiz)
 {
    __m256i aux[10];
    int i;
@@ -618,570 +618,174 @@ int keccak_256(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uin
     0x0000000080000001,0x0000000080000001,0x0000000080000001,0x0000000080000001, 
     0x8000000080008008,0x8000000080008008,0x8000000080008008,0x8000000080008008 
   };
-  
-  const int rsiz = 136;
-  const int g = 128;
-  const int gf = 160;
 
-  ALIGN uint8_t temp0[144];
-  ALIGN uint8_t temp1[144];
-  ALIGN uint8_t temp2[144];
-  ALIGN uint8_t temp3[144];
-  int k=1,j,l=0;
+  ALIGN uint8_t temp[4][144];
+  int k=0,j,l=0;
   __m256i s[28],ain[8];
   __m128i auxl[5];
   char* con[32];
   char* in[4];
-  in[0]=in_e[0];
-  in[1]=in_e[1];
-  in[2]=in_e[2];
-  in[3]=in_e[3];
-
-  init_S_zeros(j);
-      
-    
-  while(inlen -l >= rsiz){
-
-    join1(in,j,4);
-    keccakf(s);
+  int ti,tf,g,gf;
   
+  for(i=0;i<4;i++){
+    in[i]=in_e[i];
+  }
+  
+  init_S_zeros(j);
+  
+  switch (rsiz){
+    case 136: 
+      ti = 4;
+      tf = 3;
+      g  = 128;
+      gf = 160;
+      break;
+    case 104: 
+      ti = 3;
+      tf = 2;
+      g  = 96;
+      gf = 128;
+      break;
+    case 72: 
+      ti = 2;
+      tf = 1;
+      g  = 64;
+      gf = 96;
+      break;
+  }
+      
+  while(inlen -l >= rsiz){
+    join1(in,j,ti);
+    keccakf(s);
+    
     inlen -= g;
     l=8;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-	    
-    if(inlen -l < rsiz){
-      k=2;
-      break;
+    for(i=0;i<4;i++){
+      in[i] += g;
     }
 
+    if(inlen -l < rsiz){
+      k=8;
+      break;
+    }
     
-    join2(in,j,3);
-    
+    join2(in,j,tf);
     keccakf(s);
+    
     inlen -= g;
     l=16;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
+    for(i=0;i<4;i++){
+      in[i] += g;
+    }
+    
     if(inlen -l < rsiz){
-      k=3;
+      k=16;
       break;
     }
 
-    join3(in,j,3);
-
+    join3(in,j,tf);
     keccakf(s);
+    
     inlen -= g;
     l=24;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    
-    
-    
+    for(i=0;i<4;i++){
+      in[i] += g;
+    }
+
     if(inlen -l < rsiz){
-      k=4;
+      k=24;
       break;
     }
 
-    join4(in,j,4);
-
+    join4(in,j,ti);
     keccakf(s);
+    
     inlen -= gf;
     l=0;
-    in[0] += gf;
-    in[1] += gf;
-    in[2] += gf;
-    in[3] += gf;
-    
+    for(i=0;i<4;i++){
+      in[i] += gf;
+    }
     
     if(inlen -l < rsiz){
-      k=1;
+      k=0;
       break;
     }
   }
-    
-
-  switch(k){
-    case 2:
-      inlen-=8;
-      in[0] += 8;
-      in[1] += 8;
-      in[2] += 8;
-      in[3] += 8;
-      break;
-    case 3:
-      inlen-=16;
-      in[0] += 16;
-      in[1] += 16;
-      in[2] += 16;
-      in[3] += 16;
-      break;
-    case 4:
-      inlen-=24;
-      in[0] += 24;
-      in[1] += 24;
-      in[2] += 24;
-      in[3] += 24;
-      break;
-    case 1:
-      break;
-    default:
-      printf("ERRO!!!");
-      return 0;
+  
+  inlen-=k;
+  
+  for(i=0;i<4;i++){
+    in[i] += k;
+    memset(temp[i], 0, 144*sizeof(uint8_t));
+    memcpy(temp[i], in[i], inlen);
+    temp[i][inlen] = 0x06;
+    inlen++;
+    temp[i][rsiz - 1] |= 0x80;
   }
-    
- 
-  memset(temp0, 0, 144*sizeof(uint8_t));
-  memset(temp1, 0, 144*sizeof(uint8_t));
-  memset(temp2, 0, 144*sizeof(uint8_t));
-  memset(temp3, 0, 144*sizeof(uint8_t));
-  
-  // last block and padding
-  memcpy(temp0, in[0], inlen);
-  memcpy(temp1, in[1], inlen);
-  memcpy(temp2, in[2], inlen);
-  memcpy(temp3, in[3], inlen);
-  temp0[inlen] = 0x06;
-  temp1[inlen] = 0x06;
-  temp2[inlen] = 0x06;
-  temp3[inlen++] = 0x06;
-  temp0[rsiz - 1] |= 0x80;
-  temp1[rsiz - 1] |= 0x80;
-  temp2[rsiz - 1] |= 0x80;
-  temp3[rsiz - 1] |= 0x80;
 
-  join_last(j,4); 
-  
+  join_last(j,ti); 
   keccakf(s);
   
-//     for(i=0;i<25;i++){
-//       print_256(s[i]);
-//     }
-//      getchar();
-//   
+switch (rsiz){
+    case 136: 
+      back(j,1);
+      store(md[0],0,s[0]);
+      store(md[1],0,s[1]);
+      store(md[2],0,s[2]);
+      store(md[3],0,s[3]);
+      break;
+    case 104:
+      back(j,2);
+      store(md[0],0,s[0]);
+      store(md[0],1,s[4]);
+      store(md[1],0,s[1]);
+      store(md[1],1,s[5]);
+      store(md[2],0,s[2]);
+      store(md[2],1,s[6]);
+      store(md[3],0,s[3]);
+      store(md[3],1,s[7]);
+      break;
+    case 72:
+      back(j,2);
+      store(md[0],0,s[0]);
+      store(md[0],1,s[4]);
+      store(md[1],0,s[1]);
+      store(md[1],1,s[5]);
+      store(md[2],0,s[2]);
+      store(md[2],1,s[6]);
+      store(md[3],0,s[3]);
+      store(md[3],1,s[7]);
+      break;
+  }  
   
-//   print_256(s[0]);
-//   print_256(s[1]);
-//   print_256(s[2]);
-//   print_256(s[3]);
-//   getchar();
-  
-  
-  back(j,1);
-  
-//   print_256(s[0]);
-//   print_256(s[1]);
-//   print_256(s[2]);
-//   print_256(s[3]);
-//   getchar();
-  
-  store(md,0,s[0]);
-  store(md1,0,s[1]);
-  store(md2,0,s[2]);
-  store(md3,0,s[3]);
 
   return 0;
 }
 
-int keccak_384(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3)
-{
-   __m256i aux[10];
-   int i;
-  const ALIGN uint64_t RC[100] = {
-    0x0000000000000001,0x0000000000000001,0x0000000000000001,0x0000000000000001,
-    0x0000000000008082,0x0000000000008082,0x0000000000008082,0x0000000000008082,
-    0x800000000000808A,0x800000000000808A,0x800000000000808A,0x800000000000808A,  
-    0x8000000080008000,0x8000000080008000,0x8000000080008000,0x8000000080008000, 
-    0x000000000000808B,0x000000000000808B,0x000000000000808B,0x000000000000808B,   
-    0x0000000080000001,0x0000000080000001,0x0000000080000001,0x0000000080000001, 
-    0x8000000080008081,0x8000000080008081,0x8000000080008081,0x8000000080008081, 
-    0x8000000000008009,0x8000000000008009,0x8000000000008009,0x8000000000008009, 
-    0x000000000000008A,0x000000000000008A,0x000000000000008A,0x000000000000008A, 
-    0x0000000000000088,0x0000000000000088,0x0000000000000088,0x0000000000000088, 
-    0x0000000080008009,0x0000000080008009,0x0000000080008009,0x0000000080008009, 
-    0x000000008000000A,0x000000008000000A,0x000000008000000A,0x000000008000000A, 
-    0x000000008000808B,0x000000008000808B,0x000000008000808B,0x000000008000808B, 
-    0x800000000000008B,0x800000000000008B,0x800000000000008B,0x800000000000008B, 
-    0x8000000000008089,0x8000000000008089,0x8000000000008089,0x8000000000008089, 
-    0x8000000000008003,0x8000000000008003,0x8000000000008003,0x8000000000008003, 
-    0x8000000000008002,0x8000000000008002,0x8000000000008002,0x8000000000008002, 
-    0x8000000000000080,0x8000000000000080,0x8000000000000080,0x8000000000000080, 
-    0x000000000000800A,0x000000000000800A,0x000000000000800A,0x000000000000800A, 
-    0x800000008000000A,0x800000008000000A,0x800000008000000A,0x800000008000000A, 
-    0x8000000080008081,0x8000000080008081,0x8000000080008081,0x8000000080008081, 
-    0x8000000000008080,0x8000000000008080,0x8000000000008080,0x8000000000008080, 
-    0x0000000080000001,0x0000000080000001,0x0000000080000001,0x0000000080000001, 
-    0x8000000080008008,0x8000000080008008,0x8000000080008008,0x8000000080008008 
-  };
-  
-
-  const int rsiz = 104;
-  const int g = 96;
-  const int gf = 128;
-  ALIGN uint8_t temp0[144];
-  ALIGN uint8_t temp1[144];
-  ALIGN uint8_t temp2[144];
-  ALIGN uint8_t temp3[144];
-  int k=1,j,l=0;
-  __m256i s[28],ain[8];
-  __m128i auxl[5];
-  char* con[32];
-  char* in[4];
-  in[0]=in_e[0];
-  in[1]=in_e[1];
-  in[2]=in_e[2];
-  in[3]=in_e[3];
-
-  init_S_zeros(j);
-      
-    
-  while(inlen -l >= rsiz){
-
-
-    join1(in,j,3);
-	
-    keccakf(s);
-    inlen -= g;
-    l=8;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-	    
-    if(inlen -l < rsiz){
-      k=2;
-      break;
-    }
-    join2(in,j,2);
-
-    keccakf(s);
-    inlen -= g;
-    l=16;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    if(inlen -l < rsiz){
-      k=3;
-      break;
-    }
-
-    join3(in,j,2);
-    
-    keccakf(s);
-    inlen -= g;
-    l=24;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    
-    if(inlen -l < rsiz){
-      k=4;
-      break;
-    }
-
-    join4(in,j,3);
-    
-    keccakf(s);
-    inlen -= gf;
-    l=0;
-    in[0] += gf;
-    in[1] += gf;
-    in[2] += gf;
-    in[3] += gf;
-    
-    
-    if(inlen -l < rsiz){
-      k=1;
-      break;
-    }
-  }
-    
-
-    switch(k){
-      case 2:
-	inlen-=8;
-	in[0] += 8;
-	in[1] += 8;
-	in[2] += 8;
-	in[3] += 8;
-	break;
-      case 3:
-	inlen-=16;
-	in[0] += 16;
-	in[1] += 16;
-	in[2] += 16;
-	in[3] += 16;
-	break;
-      case 4:
-	inlen-=24;
-	in[0] += 24;
-	in[1] += 24;
-	in[2] += 24;
-	in[3] += 24;
-	break;
-      case 1:
-	break;
-      default:
-	printf("ERRO!!!");
-	return 0;
-    }
-    
- 
-    memset(temp0, 0, 144*sizeof(uint8_t));
-    memset(temp1, 0, 144*sizeof(uint8_t));
-    memset(temp2, 0, 144*sizeof(uint8_t));
-    memset(temp3, 0, 144*sizeof(uint8_t));
-    
-    // last block and padding
-    memcpy(temp0, in[0], inlen);
-    memcpy(temp1, in[1], inlen);
-    memcpy(temp2, in[2], inlen);
-    memcpy(temp3, in[3], inlen);
-    temp0[inlen] = 0x06;
-    temp1[inlen] = 0x06;
-    temp2[inlen] = 0x06;
-    temp3[inlen++] = 0x06;
-    temp0[rsiz - 1] |= 0x80;
-    temp1[rsiz - 1] |= 0x80;
-    temp2[rsiz - 1] |= 0x80;
-    temp3[rsiz - 1] |= 0x80;
-    
-
-    join_last(j,3); 
-    
-    keccakf(s);
-    
-
-    back(j,2);
-    store(md,0,s[0]);
-    store(md,1,s[4]);
-    store(md1,0,s[1]);
-    store(md1,1,s[5]);
-    store(md2,0,s[2]);
-    store(md2,1,s[6]);
-    store(md3,0,s[3]);
-    store(md3,1,s[7]);
-
-    return 0;
-}
-
-int keccak_512	(char **in_e, int inlen, uint8_t *md,uint8_t *md1,uint8_t *md2,uint8_t *md3)
-{
-   __m256i aux[10];
-   int i;
-  const ALIGN uint64_t RC[100] = {
-    0x0000000000000001,0x0000000000000001,0x0000000000000001,0x0000000000000001,
-    0x0000000000008082,0x0000000000008082,0x0000000000008082,0x0000000000008082,
-    0x800000000000808A,0x800000000000808A,0x800000000000808A,0x800000000000808A,  
-    0x8000000080008000,0x8000000080008000,0x8000000080008000,0x8000000080008000, 
-    0x000000000000808B,0x000000000000808B,0x000000000000808B,0x000000000000808B,   
-    0x0000000080000001,0x0000000080000001,0x0000000080000001,0x0000000080000001, 
-    0x8000000080008081,0x8000000080008081,0x8000000080008081,0x8000000080008081, 
-    0x8000000000008009,0x8000000000008009,0x8000000000008009,0x8000000000008009, 
-    0x000000000000008A,0x000000000000008A,0x000000000000008A,0x000000000000008A, 
-    0x0000000000000088,0x0000000000000088,0x0000000000000088,0x0000000000000088, 
-    0x0000000080008009,0x0000000080008009,0x0000000080008009,0x0000000080008009, 
-    0x000000008000000A,0x000000008000000A,0x000000008000000A,0x000000008000000A, 
-    0x000000008000808B,0x000000008000808B,0x000000008000808B,0x000000008000808B, 
-    0x800000000000008B,0x800000000000008B,0x800000000000008B,0x800000000000008B, 
-    0x8000000000008089,0x8000000000008089,0x8000000000008089,0x8000000000008089, 
-    0x8000000000008003,0x8000000000008003,0x8000000000008003,0x8000000000008003, 
-    0x8000000000008002,0x8000000000008002,0x8000000000008002,0x8000000000008002, 
-    0x8000000000000080,0x8000000000000080,0x8000000000000080,0x8000000000000080, 
-    0x000000000000800A,0x000000000000800A,0x000000000000800A,0x000000000000800A, 
-    0x800000008000000A,0x800000008000000A,0x800000008000000A,0x800000008000000A, 
-    0x8000000080008081,0x8000000080008081,0x8000000080008081,0x8000000080008081, 
-    0x8000000000008080,0x8000000000008080,0x8000000000008080,0x8000000000008080, 
-    0x0000000080000001,0x0000000080000001,0x0000000080000001,0x0000000080000001, 
-    0x8000000080008008,0x8000000080008008,0x8000000080008008,0x8000000080008008 
-  };
-  
-  const int rsiz = 72;
-  const int g = 64;
-  const int gf = 96;
-  ALIGN uint8_t temp0[144];
-  ALIGN uint8_t temp1[144];
-  ALIGN uint8_t temp2[144];
-  ALIGN uint8_t temp3[144];
-  int k=1,j,l=0;
-  __m256i s[28],ain[8];
-  __m128i auxl[5];
-  char* con[32];
-  char* in[4];
-  in[0]=in_e[0];
-  in[1]=in_e[1];
-  in[2]=in_e[2];
-  in[3]=in_e[3];
-
-  init_S_zeros(j);
-    
-    
-  while(inlen -l >= rsiz){
-    
-    join1(in,j,2);
-          
-    keccakf(s);
-    inlen -= g;
-    l=8;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    
-    
-	    
-    if(inlen -l < rsiz){
-      k=2;
-      break;
-    }
-
-    join2(in,j,1);
-    
-    keccakf(s);
-    inlen -= g;
-    l=16;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    if(inlen -l < rsiz){
-      k=3;
-      break;
-    }
-
-    join3(in,j,1);
-    
-    keccakf(s);
-    inlen -= g;
-    l=24;
-    in[0] += g;
-    in[1] += g;
-    in[2] += g;
-    in[3] += g;
-    
-    if(inlen -l < rsiz){
-      k=4;
-      break;
-    }
-
-    join4(in,j,2);
-    
-    keccakf(s);
-    inlen -= gf;
-    l=0;
-    in[0] += gf;
-    in[1] += gf;
-    in[2] += gf;
-    in[3] += gf;
-    
-    
-    if(inlen -l < rsiz){
-      k=1;
-      break;
-    }
-  }
-  
-
-  switch(k){
-    case 2:
-      inlen-=8;
-      in[0] += 8;
-      in[1] += 8;
-      in[2] += 8;
-      in[3] += 8;
-      break;
-    case 3:
-      inlen-=16;
-      in[0] += 16;
-      in[1] += 16;
-      in[2] += 16;
-      in[3] += 16;
-      break;
-    case 4:
-      inlen-=24;
-      in[0] += 24;
-      in[1] += 24;
-      in[2] += 24;
-      in[3] += 24;
-      break;
-    case 1:
-      break;
-    default:
-      printf("ERRO!!!");
-      return 0;
-  }
-  
-
-  memset(temp0, 0, 144*sizeof(uint8_t));
-  memset(temp1, 0, 144*sizeof(uint8_t));
-  memset(temp2, 0, 144*sizeof(uint8_t));
-  memset(temp3, 0, 144*sizeof(uint8_t));
-  
-  // last block and padding
-  memcpy(temp0, in[0], inlen);
-  memcpy(temp1, in[1], inlen);
-  memcpy(temp2, in[2], inlen);
-  memcpy(temp3, in[3], inlen);
-  temp0[inlen] = 0x06;
-  temp1[inlen] = 0x06;
-  temp2[inlen] = 0x06;
-  temp3[inlen++] = 0x06;
-  temp0[rsiz - 1] |= 0x80;
-  temp1[rsiz - 1] |= 0x80;
-  temp2[rsiz - 1] |= 0x80;
-  temp3[rsiz - 1] |= 0x80;
-  
-  
-  join_last(j,2); 
-    
-  keccakf(s);
-  
-  back(j,2);
-  store(md,0,s[0]);
-  store(md,1,s[4]);
-  store(md1,0,s[1]);
-  store(md1,1,s[5]);
-  store(md2,0,s[2]);
-  store(md2,1,s[6]);
-  store(md3,0,s[3]);
-  store(md3,1,s[7]);
-
-  return 0;
-}
-
-
-int openmp_256(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3, int t)
-{
-  int i;
-  #pragma omp parallel for num_threads(t)
-     for(i=0;i<t;i++){
-        keccak_256(in, inlen,md[i],md1[i],md2[i],md3[i]);
-     }
-}
-
-int openmp_384(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
-{
-  int i;
-  #pragma omp parallel for num_threads(4)
-     for(i=0;i<4;i++){
-        keccak_384(in, inlen,md[i],md1[i],md2[i],md3[i]);
-     }
-}
-
-
-int openmp_512(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
-{
-  int i;
-  #pragma omp parallel for num_threads(4)
-     for(i=0;i<4;i++){
-        keccak_512(in, inlen,md[i],md1[i],md2[i],md3[i]);
-     }
-}
+// int openmp_256(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3, int t)
+// {
+//   int i;
+//   #pragma omp parallel for num_threads(t)
+//      for(i=0;i<t;i++){
+//         keccak_256(in, inlen,md[i],md1[i],md2[i],md3[i]);
+//      }
+// }
+// 
+// int openmp_384(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
+// {
+//   int i;
+//   #pragma omp parallel for num_threads(4)
+//      for(i=0;i<4;i++){
+//         keccak_384(in, inlen,md[i],md1[i],md2[i],md3[i]);
+//      }
+// }
+// 
+// 
+// int openmp_512(char ** in, int inlen, uint8_t **md,uint8_t **md1,uint8_t **md2,uint8_t **md3)
+// {
+//   int i;
+//   #pragma omp parallel for num_threads(4)
+//      for(i=0;i<4;i++){
+//         keccak_512(in, inlen,md[i],md1[i],md2[i],md3[i]);
+//      }
+// }

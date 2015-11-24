@@ -22,12 +22,18 @@ int main(int argc, char **argv)
       md1[i]  = (uint8_t*)_mm_malloc(64*sizeof(uint8_t),32);
     }
     
+    for(j=0;j<4;j++){
+      for(i=0;i<inlen;i++){
+	msgstr[j][i] = (char)(rand()%256);
+      }
+    }
+    
     printf("\n 4-way implementation using 256-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
     
    printf("Keccak_256 4 way \t\t\t");
 
-   keccak_256(msgstr, inlen,md[0],md[1],md[2],md[3]);
+   keccak(msgstr, inlen,md,136);
 
     keccak_std(msgstr[0], inlen,md1[0],32);
     keccak_std(msgstr[1], inlen,md1[1],32);
@@ -43,7 +49,7 @@ int main(int argc, char **argv)
     
     printf("Keccak_384 4 way \t\t\t");
     
-    keccak_384(msgstr, inlen,md[0],md[1],md[2],md[3]);
+    keccak(msgstr, inlen,md,104);
    
     keccak_std(msgstr[0], inlen,md1[0],48);
     keccak_std(msgstr[1], inlen,md1[1],48);
@@ -58,7 +64,7 @@ int main(int argc, char **argv)
     
     printf("Keccak_512 4 way \t\t\t");
 
-    keccak_512(msgstr, inlen,md[0],md[1],md[2],md[3]);
+    keccak(msgstr, inlen,md,72);
    
 
     keccak_std(msgstr[0], inlen,md1[0],64);
