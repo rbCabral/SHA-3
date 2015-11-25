@@ -26,7 +26,7 @@ int main(int argc, char **argv)
       msgstr[0][i] = (char)(rand()%256);
     }
     
-    printf("\n 4-way implementation using 256-bit registers.\n\n");    
+    printf("\n 2-way implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
     
    printf("Keccak_256 4 way \t\t\t");
