@@ -33,11 +33,13 @@ int main(int argc, char **argv)
    
    printf("Keccak_256 \t\t\t");
    
-   for(inlen=0;inlen<10000;inlen++){   
-   keccak_256(msgstr,inlen,md,136);
+   for(i=0;i<inlen;i++){   
    
-   keccak_std(msgstr[0], inlen,md1[0],32);
-   keccak_std(msgstr[1], inlen,md1[1],32);
+    keccak_256(msgstr,i,md,136);
+   
+   
+   keccak_std(msgstr[0], i,md1[0],32);
+   keccak_std(msgstr[1], i,md1[1],32);
    
    if((memcmp(md[0],md1[0],32) && memcmp(md[1],md1[1],32)!= 0)){
      printf("Error!!\n");
