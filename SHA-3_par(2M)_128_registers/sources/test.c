@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     
     for(i=0;i<inlen;i++){
       msgstr[0][i] = (char)(rand()%256);
+      msgstr[1][i] = (char)(rand()%256);
     }
     
     printf("\n 2-way implementation using 128-bit registers.\n\n");    
@@ -35,10 +36,11 @@ int main(int argc, char **argv)
 
    keccak_std(msgstr[0], inlen,md1[0],32);
    keccak_std(msgstr[1], inlen,md1[1],32);
-   if((memcmp(md[0],md1[0],32) && memcmp(md[1],md1[1],32)!= 0)){
+
+   if((memcmp(md[0],md1[0],32) !=0 || memcmp(md[1],md1[1],32)!= 0)){
      printf("Error!!\n");
      exit(1);
-   }
+   } 
     
     printf("Ok!!\n");
     
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
     keccak_std(msgstr[0], inlen,md1[0],48);
     keccak_std(msgstr[1], inlen,md1[1],48);
     
-   if((memcmp(md[0],md1[0],48) && memcmp(md[1],md1[1],48)!= 0)){
+   if((memcmp(md[0],md1[0],48) !=0 || memcmp(md[1],md1[1],48)!= 0)){
     printf("Error!!\n");
     exit(1);
    }
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
     keccak_std(msgstr[0], inlen,md1[0],64);
     keccak_std(msgstr[1], inlen,md1[1],64);
     
-   if((memcmp(md[0],md1[0],64) && memcmp(md[1],md1[1],64)!= 0)){
+   if((memcmp(md[0],md1[0],64) != 0 || memcmp(md[1],md1[1],64)!= 0)){
     printf("Error!!\n");
     exit(1);
    }

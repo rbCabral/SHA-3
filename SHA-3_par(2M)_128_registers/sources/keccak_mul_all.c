@@ -362,7 +362,12 @@
 	}\
 	\
 
-
+void print_128(__m128i x){
+     uint64_t c[2];
+     store(c,0,x);
+     printf("\n 1 = %8.16lx\t  0 = %8.16lx\t\n", c[1],c[0]);
+}			
+	
 
 
 int keccak(char **in_e, int inlen, uint8_t **md, int rsiz)
@@ -460,12 +465,10 @@ int keccak(char **in_e, int inlen, uint8_t **md, int rsiz)
     memset(temp[i], 0, 144*sizeof(uint8_t));
     memcpy(temp[i], in[i], inlen);
     temp[i][inlen] = 0x06;
-    inlen++;
     temp[i][rsiz - 1] |= 0x80;
   }
 
   join_last(j,t); 
-  
   keccakf(s,j);
   
   switch (rsiz){

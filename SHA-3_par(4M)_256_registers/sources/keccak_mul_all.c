@@ -719,7 +719,6 @@ int keccak(char **in_e, int inlen, uint8_t **md, int rsiz)
     memset(temp[i], 0, 144*sizeof(uint8_t));
     memcpy(temp[i], in[i], inlen);
     temp[i][inlen] = 0x06;
-    inlen++;
     temp[i][rsiz - 1] |= 0x80;
   }
 

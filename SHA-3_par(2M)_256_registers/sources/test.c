@@ -41,7 +41,7 @@ int main(int argc, char **argv)
    keccak_std(msgstr[0], i,md1[0],32);
    keccak_std(msgstr[1], i,md1[1],32);
    
-   if((memcmp(md[0],md1[0],32) && memcmp(md[1],md1[1],32)!= 0)){
+   if((memcmp(md[0],md1[0],32)!=0 || memcmp(md[1],md1[1],32)!= 0)){
      printf("Error!!\n");
      exit(1);
    }
