@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
    ALIGN char *msgstr;
    int inlen,i;
-   ALIGN uint8_t md[64];
-   ALIGN uint8_t md1[64];
+   ALIGN uint8_t md[128];
+   ALIGN uint8_t md1[128];
       
 
    if(argc != 2){
@@ -24,7 +24,21 @@ int main(int argc, char **argv)
 
     printf("\nSequential implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
-      
+   
+    printf("Keccak_224 \t\t\t");
+    
+   memset(md, 0, 64*sizeof(uint8_t));
+   memset(md1, 0, 64*sizeof(uint8_t));
+   
+   keccak((uint8_t*)msgstr, inlen,md1,28);
+   keccak_std((uint8_t*)msgstr, inlen,md,28);
+   
+   if(memcmp(md,md1,28) == 0){
+     printf("ok!\n");
+    }else{
+      printf("Error!!\n");
+    }
+   
    printf("Keccak_256 \t\t\t");
     
    memset(md, 0, 64*sizeof(uint8_t));
@@ -38,7 +52,72 @@ int main(int argc, char **argv)
     }else{
       printf("Error!!\n");
     }
+  
+   printf("Keccak_384 \t\t\t");
     
+   memset(md, 0, 64*sizeof(uint8_t));
+   memset(md1, 0, 64*sizeof(uint8_t));
+   
+   keccak((uint8_t*)msgstr, inlen,md1,48);
+   keccak_std((uint8_t*)msgstr, inlen,md,48);
+  
+   if(memcmp(md,md1,48) == 0){
+     printf("ok!\n");
+    }else{
+      printf("Error!!\n");
+    }
+
+    printf("Keccak_512 \t\t\t");
+    
+   memset(md, 0, 64*sizeof(uint8_t));
+   memset(md1, 0, 64*sizeof(uint8_t));
+   
+   keccak((uint8_t*)msgstr, inlen,md1,64);
+   keccak_std((uint8_t*)msgstr, inlen,md,64);
+  
+   if(memcmp(md,md1,64) == 0){
+     printf("ok!\n");
+    }else{
+      printf("Error!!\n");
+    }
+  
+   printf("SHAKE128 outputing 256 bits  \t\t\t");
+    
+   memset(md, 0, 64*sizeof(uint8_t));
+   memset(md1, 0, 64*sizeof(uint8_t));
+   
+   keccak((uint8_t*)msgstr, inlen,md1,16);
+   keccak_std((uint8_t*)msgstr, inlen,md,16);
+  
+/*   printf("\n\n");
+   for(i=0;i<16;i++)
+	   printf("%X", md1[i]);
+  
+   printf("\n\n");
+   for(i=0;i<16;i++)
+	   printf("%X", md[i]);
+*/
+
+   if(memcmp(md,md1,16) == 0){
+     printf("ok!\n");
+    }else{
+      printf("Error!!\n");
+    }
+
+   printf("SHAKE256 outputing 256 bits  \t\t\t");
+    
+   memset(md, 0, 64*sizeof(uint8_t));
+   memset(md1, 0, 64*sizeof(uint8_t));
+   
+   keccak((uint8_t*)msgstr, inlen,md1,32);
+   keccak_std((uint8_t*)msgstr, inlen,md,32);
+  
+   if(memcmp(md,md1,32) == 0){
+     printf("ok!\n");
+    }else{
+      printf("Error!!\n");
+    }
+
     printf("<------------------------------------------------------>\n\n\n");    
     
 

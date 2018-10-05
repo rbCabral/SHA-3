@@ -102,9 +102,9 @@ int main(int argc, char **argv)
     BENCH_FUNCTION(keccak,msgstr, inlen,md,48);
     printf("cycles per bytes :%f\n",(double)total/inlen);
     
-  /*  printf("\nSHA3-512.\n");    
+    printf("\nSHA3-512.\n");    
     BENCH_FUNCTION(keccak,msgstr, inlen,md,64);
-    printf("cycles per bytes :%f\n",(double)total/inlen);*/
+    printf("cycles per bytes :%f\n",(double)total/inlen);
     
     printf("<------------------------------------------------------>\n\n\n");    
 

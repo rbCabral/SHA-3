@@ -88,8 +88,9 @@ void keccakf(uint64_t st[25], int rounds)
 int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 {
     uint64_t st[25];
-    uint8_t temp[144];
-    int i, rsiz, rsizw,k,r=0, o=0;
+    uint8_t temp[168];
+    int i, rsiz, rsizw;
+    int j;
 
     rsiz = 200 - 2 * mdlen;
     rsizw = rsiz / 8;
@@ -113,9 +114,16 @@ int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
         st[i] ^= ((uint64_t *) temp)[i];
 
     keccakf(st, KECCAK_ROUNDS);
+    // for(j=0;j<25;j++)
+    //         printf("%8.16lx\n", st[j]);
+    //     getchar();
 
     memcpy(md, st, mdlen);
 
+// for(i=0;i<32;i++){
+//     printf("%x", md[i]);
+//   }
+//   printf("\n");
     return 0;
 }
 

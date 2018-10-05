@@ -99,17 +99,17 @@ int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
     for ( ; inlen >= rsiz; inlen -= rsiz, in += rsiz) {
         for (i = 0; i < rsizw; i++)
             st[i] ^= ((uint64_t *) in)[i];
-	/*for(j=0;j<25;j++){
+
+        keccakf(st, KECCAK_ROUNDS);
+
+    }
+/*	for(j=0;j<25;j++){
 	    if((j!=0 && j%4==0))
 		    printf("\n");
 	    printf("%d: %.16lx \t", j,st[j]);
 	}
 	exit(1);
 	printf("\n");*/
-        keccakf(st, KECCAK_ROUNDS);
-
-    }
-
     // last block and padding
     memcpy(temp, in, inlen);
     temp[inlen++] = 0x06;           // XXX Padding Changed from Keccak 3.0
@@ -126,8 +126,9 @@ int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 /*	for(j=0;j<4;j++){
 		printf("%d: %.16lx \t", j,st[j]);
 	}
-	printf("\n");
-   for(j=0;j<8;j++){
+	printf("\n");*/
+
+ /*   for(j=0;j<8;j++){
 	 //   if((j!=0 && j%4==0))
 		    printf("\n");
 	    printf("%d: %.16lx \t", j,st[j]);

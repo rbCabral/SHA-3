@@ -90,6 +90,8 @@ we have in the registers y0 to y12 the follows words
 				\
 				y[2] = xor(x0,y[2]);\
 				y[3] = xor(x1,y[3]);\
+				if(rsiz==72)\
+					x3 = set_zero_HI(x3);\
 				y[4] = xor(x3,y[4]);\
 				if(rsiz==104){\
 					x4 = load(M,5);\
@@ -371,8 +373,16 @@ we have in the registers y0 to y12 the follows words
 void print_128(__m128i x){
      uint64_t c[2];
      store(c,0,x);
-     printf("\n 1 = %8.16lx\t  0 = %8.16lx\t\n", c[1],c[0]);
+     printf("\n 1 = %8.16lX\t  0 = %8.16lX\t\n", c[1],c[0]);
 }			
+
+
+void printState(__m128i* x){
+	int i;
+	for(i=0;i<13;i++){
+		print_128(x[i]);
+	}
+}	
 			
 int keccak(const uint8_t *in, int inlen, uint8_t *md, int r){
 
@@ -416,7 +426,10 @@ int keccak(const uint8_t *in, int inlen, uint8_t *md, int r){
   
   for ( ; inlen >= rsiz; inlen -= rsiz) { 
             loadM(in_temp); 
-            keccakF(y, 24); 
+            keccakF(y, 24);
+//	    printState(y);
+//	    getchar();
+
             in_temp +=rsiz;
    } 
 

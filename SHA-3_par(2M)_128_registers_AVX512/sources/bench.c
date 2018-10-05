@@ -83,29 +83,34 @@ int main(int argc, char **argv)
    
    for(i=0;i<2;i++){
       msgstr[i] = (char*)_mm_malloc(inlen*sizeof(char),32);
-      md[i]  = (uint8_t*)_mm_malloc(64*sizeof(uint8_t),32);
-  }    
-  
-   for(j=0;j<2;j++){
-    for(i=0;i<inlen;i++){
-      msgstr[j][i] = (char)(rand()%256);
-    }
-   }
+      md[i]  = (uint8_t*)_mm_malloc(168*sizeof(uint8_t),32);
+   }    
     
     printf("\n 2-way implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
     
-    printf("\nSHA3-256.\n");    
-    BENCH_FUNCTION(keccak,msgstr, inlen,md,136);
+    printf("\nSHA3-224.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,28,28);
+    printf("cycles per bytes :%f\n",(double)total/(inlen*2));
 
+    printf("\nSHA3-256.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,32,32);
     printf("cycles per bytes :%f\n",(double)total/(inlen*2));
     
     printf("\nSHA3-384.\n");    
-    BENCH_FUNCTION(keccak,msgstr, inlen,md,104);
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,48,48);
     printf("cycles per bytes :%f\n",(double)total/(inlen*2));
     
     printf("\nSHA3-512.\n");    
-    BENCH_FUNCTION(keccak,msgstr, inlen,md,72);
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,64,64);
+    printf("cycles per bytes :%f\n",(double)total/(inlen*2));
+
+    printf("\nSHAKE128.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,16,168);
+    printf("cycles per bytes :%f\n",(double)total/(inlen*2));
+
+    printf("\nSHAKE256.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,32,136);
     printf("cycles per bytes :%f\n",(double)total/(inlen*2));
     
     printf("<------------------------------------------------------>\n\n\n");    

@@ -2,7 +2,7 @@ all: bench test
 
 SHA-3_256.o: sources/SHA-3_256.c
 	mkdir -p obj
-	gcc -c sources/SHA-3_256.c -march=native  -m64 -O3 -o obj/SHA-3_256.o
+	gcc -c sources/SHA-3_256.c -march=native  -DKECCAK_256 -m64 -O3 -o obj/SHA-3_256.o
 
 bench.o: sources/bench.c
 	mkdir -p obj

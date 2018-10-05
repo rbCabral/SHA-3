@@ -22,56 +22,86 @@ int main(int argc, char **argv)
       md1[i]  = (uint8_t*)_mm_malloc(64*sizeof(uint8_t),32);
     }
     
-    for(j=0;j<2;j++){
-      for(i=0;i<inlen;i++){
-	       msgstr[j][i] = (char)(rand()%256);
-      }
+    for(i=0;i<inlen;i++){
+      msgstr[0][i] = (char)(rand()%256);
+      msgstr[1][i] = (char)(rand()%256);
     }
     
     printf("\n 2-way implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
-    
-   printf("Keccak_256 2 way \t\t\t");
+   
+  printf("SHA3-224 2 2-way \t\t\t");
 
-   keccak(msgstr, inlen,md,136);
+   keccak(msgstr, inlen,md,28,28);
 
-    keccak_std((uint8_t*)msgstr[0], inlen,md1[0],32);
-    keccak_std((uint8_t*)msgstr[1], inlen,md1[1],32);
+   keccak_std((uint8_t*)msgstr[0], inlen,md1[0],28);
+   keccak_std((uint8_t*)msgstr[1], inlen,md1[1],28);
+
+    if((memcmp(md[0],md1[0],28) !=0 || memcmp(md[1],md1[1],28)!= 0))
+       printf("Error!!\n");
+    else
+       printf("Ok!!\n");
+
+   printf("SHA3-256 2 way \t\t\t");
+
+   keccak(msgstr, inlen,md,32,32);
+
+   keccak_std((uint8_t*)msgstr[0], inlen,md1[0],32);
+   keccak_std((uint8_t*)msgstr[1], inlen,md1[1],32);
+
+    if((memcmp(md[0],md1[0],32) !=0 || memcmp(md[1],md1[1],32)!= 0))
+       printf("Error!!\n");
+    else
+       printf("Ok!!\n");
     
-    if(memcmp(md[0],md1[0],32)!=0 || memcmp(md[1],md1[1],32) !=0 ){
-      printf("Error!!\n");
-      exit(1);
-    }
+    printf("SHA3-384 2 way \t\t\t");
     
-    printf("Ok!!\n");
-    
-   printf("Keccak_384 2 way \t\t\t");
-    
-    keccak(msgstr, inlen,md,104);
+    keccak(msgstr, inlen,md,48,48);
    
     keccak_std((uint8_t*)msgstr[0], inlen,md1[0],48);
     keccak_std((uint8_t*)msgstr[1], inlen,md1[1],48);
-
-    if(memcmp(md[0],md1[0],48) !=0 || memcmp(md[1],md1[1],48) !=0){
-      printf("Error!!\n");
-      exit(1);
-    }
-    printf("Ok!!\n");
     
-    printf("Keccak_512 2 way \t\t\t");
+    if((memcmp(md[0],md1[0],48) !=0 || memcmp(md[1],md1[1],48)!= 0))
+      printf("Error!!\n");
+    else
+      printf("Ok!!\n");
+    
+    printf("SHA3-512 2 way \t\t\t");
 
-    keccak(msgstr, inlen,md,72);
+    keccak(msgstr, inlen,md,64,64);
    
     keccak_std((uint8_t*)msgstr[0], inlen,md1[0],64);
     keccak_std((uint8_t*)msgstr[1], inlen,md1[1],64);
-
-    if(memcmp(md[0],md1[0],64) !=0 || memcmp(md[1],md1[1],64) != 0){
+    
+    if((memcmp(md[0],md1[0],64) != 0 || memcmp(md[1],md1[1],64)!= 0))
       printf("Error!!\n");
-      exit(1);
-    }
+    else    
+      printf("Ok!!\n");
     
-    printf("Ok!!\n");
+    printf("SHAKE128 2 way \t\t\t");
+
+    keccak(msgstr, inlen,md,16,16);
+   
+    keccak_std((uint8_t*)msgstr[0], inlen,md1[0],16);
+    keccak_std((uint8_t*)msgstr[1], inlen,md1[1],16);
     
+    if((memcmp(md[0],md1[0],16) != 0 || memcmp(md[1],md1[1],16)!= 0))
+      printf("Error!!\n");
+    else    
+      printf("Ok!!\n");
+
+    printf("SHAKE256 2 way \t\t\t");
+
+    keccak(msgstr, inlen,md,32,32);
+   
+    keccak_std((uint8_t*)msgstr[0], inlen,md1[0],32);
+    keccak_std((uint8_t*)msgstr[1], inlen,md1[1],32);
+    
+    if((memcmp(md[0],md1[0],32) != 0 || memcmp(md[1],md1[1],32)!= 0))
+      printf("Error!!\n");
+    else    
+      printf("Ok!!\n");
+
     printf("<------------------------------------------------------>\n");    
 
    for(i=0;i<2;i++){

@@ -20,7 +20,7 @@
 #define set_zero_256(x)		x = _mm512_setzero_si512()
 
 #define load_128(x,m,d) 	x = _mm_loadu_si128((__m128i*)m+d)
-#define store_128(x,d,y)	_mm_storeu_si128((__m128i*)x+d,y);
+#define store_128(x,d,y)	_mm_store_si128((__m128i*)x+d,y);
 #define unpackLO_128_64(x,y,z)	x = _mm_unpacklo_epi64(y,z)
 #define unpackHI_128_64(x,y,z)	x = _mm_unpackhi_epi64(y,z)
 #define cast_to_256(x,y)	x = _mm256_castsi128_si256(y)
@@ -30,117 +30,111 @@
 
 #define loadM(y,p,temp)		\
 				for(y=0;y<p;y++){\
-					for(i=0;i<8;i++)\
-                                                load(t[i],temp[i],y);\
-                                        \
-                                        for(i=0;i<8;i=i+2){\
-                                                unpackLO_64(r[i],  t[i],t[i+1]);\
-                                                unpackHI_64(r[i+1],t[i],t[i+1]);\
-                                        }\
-                                        for(i=0;i<8;i=i+4){\
-                                                t[i]   = _mm512_permutex2var_epi64(r[i],l0,r[i+2]);/*d2 c2 b2 a2 d0 c0 b0 a0*/\
-                                                t[i+1] = _mm512_permutex2var_epi64(r[i],l1,r[i+2]);/*d6 c6 b6 a6 d4 c4 b4 a4*/\
-                                                t[i+2] = _mm512_permutex2var_epi64(r[i+1],l0,r[i+3]);/*d5 c5 b5 a5 d1 c1 b1 a1*/\
-                                                t[i+3] = _mm512_permutex2var_epi64(r[i+1],l1,r[i+3]);/*d7 c7 b7 a7 d3 c3 b3 a3*/\
-                                        }\
-                                        for(i=0;i<2;i++){\
-                                                r[(i<<2)]   = _mm512_permutex2var_epi64(t[i],l2,t[i+4]);/*h2 g2 f2 e2 h0 g0 f0 e0*/\
-                                                r[(i<<2)+1] = _mm512_permutex2var_epi64(t[i+2],l2,t[i+6]);/*h6 g6 f6 e6 h4 g4 f4 e4*/\
-                                                r[(i<<2)+2] = _mm512_permutex2var_epi64(t[i],l3,t[i+4]);/*h5 g5 f5 e5 h1 g1 f1 e1*/\
-                                                r[(i<<2)+3] = _mm512_permutex2var_epi64(t[i+2],l3,t[i+6]);/*h7 g7 f7 e7 h3 g3 g3 e3*/\
-                                        }\
-                                        for(i=0;i<8;i++)\
-                                                xor(s[i+(y*8)],s[i+(y*8)],r[i]);\
-                                        \
+					load(aux[8],temp[0],y);  /*a7 a6 a5 a4 a3 a2 a1 a0*/\
+					load(aux[9],temp[1],y);  /*b7 b6 b5 b4 b3 b2 b1 b0*/\
+					load(aux[10],temp[2],y); /*c7 c6 c5 c4 c3 c2 c1 c0*/\
+					load(aux[11],temp[3],y); /*d7 d6 d5 d4 d3 d2 d1 d0*/\
+					/*print_512(aux[8]);\
+					print_512(aux[9]);\
+					print_512(aux[10]);\
+					print_512(aux[11]);*/\
+					\
+					unpackLO_64(aux[0],aux[8],aux[9]);   /*b6 a6 b4 a4 b2 a2 b0 a0*/\
+					unpackHI_64(aux[1],aux[8],aux[9]);   /*b7 a7 b5 a5 b3 a3 b1 a1*/\
+					unpackLO_64(aux[2],aux[10],aux[11]); /*d6 c6 d4 c4 d2 c2 d0 c0*/\
+					unpackHI_64(aux[3],aux[10],aux[11]); /*d7 c7 d5 c5 d3 c3 d1 c1*/\
+					\
+					load(aux[8],temp[4],y);  /*e7 e6 e5 e4 e3 e2 e1 e0*/\
+					load(aux[9],temp[5],y);  /*f7 f6 f5 f4 f3 f2 f1 f0*/\
+					load(aux[10],temp[6],y); /*g7 g6 g5 g4 g3 g2 g1 g0*/\
+					load(aux[11],temp[7],y); /*h7 h6 h5 h4 h3 h2 h1 h0*/\
+					\
+					/*print_512(aux[8]);\
+					print_512(aux[9]);\
+					print_512(aux[10]);\
+					print_512(aux[11]);\
+					getchar();*/\
+					\
+					unpackLO_64(aux[4],aux[8],aux[9]);   /*f6 e6 f4 e4 f2 e2 f0 e0*/\
+					unpackHI_64(aux[5],aux[8],aux[9]);   /*f7 e7 f5 e5 f3 e3 f1 e1*/\
+					unpackLO_64(aux[6],aux[10],aux[11]); /*f6 e6 f4 e4 f2 e2 f0 e0*/\
+					unpackHI_64(aux[7],aux[10],aux[11]); /*f7 e7 f5 e5 f3 e3 f1 e1*/\
+					\
+					aux[8] = _mm512_permutex2var_epi64(aux[0],l0,aux[2]);/*d2 c2 b2 a2 d0 c0 b0 a0*/\
+					aux[9] = _mm512_permutex2var_epi64(aux[0],l1,aux[2]);/*d6 c6 b6 a6 d4 c4 b4 a4*/\
+					aux[0] = _mm512_permutex2var_epi64(aux[1],l0,aux[3]);/*d5 c5 b5 a5 d1 c1 b1 a1*/\
+					aux[2] = _mm512_permutex2var_epi64(aux[1],l1,aux[3]);/*d7 c7 b7 a7 d3 c3 b3 a3*/\
+					\
+					aux[1] = _mm512_permutex2var_epi64(aux[4],l0,aux[6]);/*h2 g2 f2 e2 h0 g0 f0 e0*/\
+					aux[3] = _mm512_permutex2var_epi64(aux[4],l1,aux[6]);/*h6 g6 f6 e6 h4 g4 f4 e4*/\
+					aux[4] = _mm512_permutex2var_epi64(aux[5],l0,aux[7]);/*h5 g5 f5 e5 h1 g1 f1 e1*/\
+					aux[6] = _mm512_permutex2var_epi64(aux[5],l1,aux[7]);/*h7 g7 f7 e7 h3 g3 g3 e3*/\
+					\
+					aux[5] = _mm512_permutex2var_epi64(aux[8],l2,aux[1]);/*h0 g0 f0 e0 d0 c0 b0 a0*/\
+					aux[7] = _mm512_permutex2var_epi64(aux[8],l3,aux[1]);/*h2 g2 f2 e2 d2 c2 b2 a2*/\
+					aux[1] = _mm512_permutex2var_epi64(aux[0],l2,aux[4]);/*h1 g1 f1 e1 d1 c1 b1 a1*/\
+					aux[8] = _mm512_permutex2var_epi64(aux[0],l3,aux[4]);/*h5 g5 f5 e5 d5 c5 b5 a5*/\
+					\
+					aux[0] = _mm512_permutex2var_epi64(aux[9],l2,aux[3]);/*h4 g4 f4 e4 d4 c4 b4 a4*/\
+					aux[4] = _mm512_permutex2var_epi64(aux[9],l3,aux[3]);/*h6 g6 f6 e6 d6 c6 b6 a6*/\
+					aux[9] = _mm512_permutex2var_epi64(aux[2],l2,aux[6]);/*h3 g3 f3 e3 d3 c3 b3 a3*/\
+					aux[3] = _mm512_permutex2var_epi64(aux[2],l3,aux[6]);/*h7 g7 f7 e7 d7 c7 b7 a7*/\
+					\
+					/*print_512(aux[5]);\
+					print_512(aux[1]);\
+					print_512(aux[7]);\
+					print_512(aux[8]);\
+					print_512(aux[0]);\
+					print_512(aux[9]);\
+					print_512(aux[4]);\
+					print_512(aux[3]);\
+					getchar();*/\
+					xor(s[2+(y*8)],s[2+(y*8)],aux[7]);\
+					xor(s[3+(y*8)],s[3+(y*8)],aux[8]);\
+				 	xor(s[0+(y*8)],s[0+(y*8)],aux[5]);\
+					xor(s[1+(y*8)],s[1+(y*8)],aux[1]);\
+					xor(s[4+(y*8)],s[4+(y*8)],aux[0]);\
+					xor(s[5+(y*8)],s[5+(y*8)],aux[9]);\
+				 	xor(s[6+(y*8)],s[6+(y*8)],aux[4]);\
+					xor(s[7+(y*8)],s[7+(y*8)],aux[3]);\
 				}\
-				if(rsiz == 104 || rsiz == 168){\
-					for(i=0;i<8;i++)\
-                                                load(t[i],temp[i],y);\
-                                        \
-                                        for(i=0;i<8;i=i+2){\
-                                                unpackLO_64(r[i],  t[i],t[i+1]);\
-                                                unpackHI_64(r[i+1],t[i],t[i+1]);\
-                                        }\
-                                        for(i=0;i<8;i=i+4){\
-                                                t[i]   = _mm512_permutex2var_epi64(r[i],l0,r[i+2]);/*d2 c2 b2 a2 d0 c0 b0 a0*/\
-                                                t[i+1] = _mm512_permutex2var_epi64(r[i],l1,r[i+2]);/*d6 c6 b6 a6 d4 c4 b4 a4*/\
-                                                t[i+2] = _mm512_permutex2var_epi64(r[i+1],l0,r[i+3]);/*d5 c5 b5 a5 d1 c1 b1 a1*/\
-                                                t[i+3] = _mm512_permutex2var_epi64(r[i+1],l1,r[i+3]);/*d7 c7 b7 a7 d3 c3 b3 a3*/\
-                                        }\
-                                        for(i=0;i<2;i++){\
-                                                r[(i<<2)]   = _mm512_permutex2var_epi64(t[i],l2,t[i+4]);/*h2 g2 f2 e2 h0 g0 f0 e0*/\
-                                                r[(i<<2)+1] = _mm512_permutex2var_epi64(t[i+2],l2,t[i+6]);/*h6 g6 f6 e6 h4 g4 f4 e4*/\
-                                                r[(i<<2)+2] = _mm512_permutex2var_epi64(t[i],l3,t[i+4]);/*h5 g5 f5 e5 h1 g1 f1 e1*/\
-                                                r[(i<<2)+3] = _mm512_permutex2var_epi64(t[i+2],l3,t[i+6]);/*h7 g7 f7 e7 h3 g3 g3 e3*/\
-                                        }\
-                                        for(i=0;i<5;i++)\
-                                                xor(s[i+(y*8)],s[i+(y*8)],r[i]);\
-                                        \
-				}else{\
-					load_128(auxl[0],temp[0],y*4);\
-					load_128(auxl[1],temp[1],y*4);\
-					load_128(auxl[2],temp[2],y*4);\
-					load_128(auxl[3],temp[3],y*4);\
-					\
-					unpackLO_128_64(auxl[4],auxl[0],auxl[1]);\
-					unpackLO_128_64(auxl[5],auxl[2],auxl[3]);\
-					cast_to_256(auxM,auxl[4]);\
-					insert_128(auxM,auxM,auxl[5],1);\
-					aux[0] = _mm512_castsi256_si512(auxM);\
-					\
-					if(rsiz == 144){\
-					unpackHI_128_64(auxl[4],auxl[0],auxl[1]);\
-						unpackHI_128_64(auxl[5],auxl[2],auxl[3]);\
-						cast_to_256(auxM,auxl[4]);\
-						insert_128(auxM,auxM,auxl[5],1);\
-						r[0] = _mm512_castsi256_si512(auxM);\
-					}\
-					\
-					load_128(auxl[0],temp[4],y*4);\
-					load_128(auxl[1],temp[5],y*4);\
-					load_128(auxl[2],temp[6],y*4);\
-					load_128(auxl[3],temp[7],y*4);\
-					\
-					if(rsiz == 144){\
-						unpackHI_128_64(auxl[4],auxl[0],auxl[1]);\
-						unpackHI_128_64(auxl[5],auxl[2],auxl[3]);\
-						cast_to_256(auxM,auxl[4]);\
-						insert_128(auxM,auxM,auxl[5],1);\
-						r[0] = _mm512_inserti64x4(r[0],auxM,1);\
-						xor(s[1+(y*8)],s[1+(y*8)],r[0]);\
-					}\
-					unpackLO_128_64(auxl[4],auxl[0],auxl[1]);\
-					unpackLO_128_64(auxl[5],auxl[2],auxl[3]);\
-					cast_to_256(auxM,auxl[4]);\
-					insert_128(auxM,auxM,auxl[5],1);\
-					aux[0] = _mm512_inserti64x4(aux[0],auxM,1);\
-					xor(s[0+(y*8)],s[0+(y*8)],aux[0]);\
-				}
-				
+				load_128(auxl[0],temp[0],y*4);\
+				load_128(auxl[1],temp[1],y*4);\
+				load_128(auxl[2],temp[2],y*4);\
+				load_128(auxl[3],temp[3],y*4);\
+				\
+				unpackLO_128_64(auxl[4],auxl[0],auxl[1]);\
+				unpackLO_128_64(auxl[0],auxl[2],auxl[3]);\
+				cast_to_256(auxM,auxl[4]);\
+				insert_128(auxM,auxM,auxl[0],1);\
+				aux[0] = _mm512_castsi256_si512(auxM);\
+				\
+				load_128(auxl[0],temp[4],y*4);\
+				load_128(auxl[1],temp[5],y*4);\
+				load_128(auxl[2],temp[6],y*4);\
+				load_128(auxl[3],temp[7],y*4);\
+				/*print_128(auxl[0]);\
+				print_128(auxl[1]);\
+				print_128(auxl[2]);\
+				print_128(auxl[3]);\
+				getchar();*/\
+				unpackLO_128_64(auxl[4],auxl[0],auxl[1]);\
+				unpackLO_128_64(auxl[0],auxl[2],auxl[3]);\
+				cast_to_256(auxM,auxl[4]);\
+				insert_128(auxM,auxM,auxl[0],1);\
+				aux[0] = _mm512_inserti64x4(aux[0],auxM,1);\
+				xor(s[0+(y*8)],s[0+(y*8)],aux[0]);\
 
-
-#define back(y,p,temp)		\
-			for(y=0;y<6;y++){\
-				unpackLO_64(aux[0],s[0+(y*4)],s[1+(y*4)]);   /*g1 g0 e1 e0 c1 c0 a1 a0*/\
-				unpackHI_64(aux[1],s[0+(y*4)],s[1+(y*4)]);   /*h1 h0 f1 f0 d1 d0 b1 b0*/\
-				unpackLO_64(aux[2],s[2+(y*4)],s[3+(y*4)]);   /*g3 g2 e3 e2 c3 c2 a3 a2*/\
-				unpackHI_64(aux[3],s[2+(y*4)],s[3+(y*4)]);   /*h3 h2 f3 f2 d3 d2 b3 b2*/\
-				\
-				aux[4] = _mm512_permutex2var_epi64(aux[0],l0,aux[2]);/*c3 c2 c1 c0 a3 a2 a1 a0*/\
-				aux[5] = _mm512_permutex2var_epi64(aux[0],l1,aux[2]);/*g3 g2 g1 g0 e3 e2 e1 e0*/\
-				aux[6] = _mm512_permutex2var_epi64(aux[1],l0,aux[3]);/*d3 d2 d1 d0 b3 b2 b1 b0*/\
-				aux[7] = _mm512_permutex2var_epi64(aux[1],l1,aux[3]);/*h3 h2 h1 h0 f3 f2 f1 f0*/\
-				\
-				store(temp[0],y,_mm512_castsi512_si256(aux[4]));\
-				store(temp[1],y,_mm512_castsi512_si256(aux[6]));\
-  				store(temp[2],y,_mm512_extracti64x4_epi64(aux[4],1));\
-	  			store(temp[3],y,_mm512_extracti64x4_epi64(aux[6],1));\
-				\
-				store(temp[4],y,_mm512_castsi512_si256(aux[5]));\
-				store(temp[5],y,_mm512_castsi512_si256(aux[7]));\
-  				store(temp[6],y,_mm512_extracti64x4_epi64(aux[5],1));\
-	  			store(temp[7],y,_mm512_extracti64x4_epi64(aux[7],1));\
-			}\
+#define back		\
+			unpackLO_64(aux[0],s[0],s[1]);   /*g1 g0 e1 e0 c1 c0 a1 a0*/\
+			unpackHI_64(aux[1],s[0],s[1]);   /*h1 h0 f1 f0 d1 d0 b1 b0*/\
+			unpackLO_64(aux[2],s[2],s[3]);   /*g3 g2 e3 e2 c3 c2 a3 a2*/\
+			unpackHI_64(aux[3],s[2],s[3]);   /*h3 h2 f3 f2 d3 d2 b3 b2*/\
+			\
+			aux[4] = _mm512_permutex2var_epi64(aux[0],l0,aux[2]);/*c3 c2 c1 c0 a3 a2 a1 a0*/\
+			aux[5] = _mm512_permutex2var_epi64(aux[0],l1,aux[2]);/*g3 g2 g1 g0 e3 e2 e1 e0*/\
+			aux[6] = _mm512_permutex2var_epi64(aux[1],l0,aux[3]);/*d3 d2 d1 d0 b3 b2 b1 b0*/\
+			aux[7] = _mm512_permutex2var_epi64(aux[1],l1,aux[3]);/*h3 h2 h1 h0 f3 f2 f1 f0*/\
 			\
 //			unpackLO_64(aux[0],s[4],s[5]);   /*g5 g4 e5 e4 c5 c4 a5 a4*/\
 //			unpackHI_64(aux[1],s[4],s[5]);   /*h5 h4 f5 f4 d5 d4 b5 b4*/\
@@ -166,55 +160,63 @@
 
 
 
+
 #define keccakf(s)	\
 			for(i=0;i<24;i=i+2){\
       \
 	aux[0] = _mm512_ternarylogic_epi64(s[0],s[5],s[10],0x96);\
 	aux[0] = _mm512_ternarylogic_epi64(aux[0],s[15],s[20],0x96);\
+	\
 	aux[2] = _mm512_ternarylogic_epi64(s[2],s[7],s[12],0x96);\
 	aux[2] = _mm512_ternarylogic_epi64(aux[2],s[17],s[22],0x96);\
+	\
+	xor(aux[6],aux[0],ROT1(aux[2]));/*aux[6] = d1*/\
+	\
 	aux[1] = _mm512_ternarylogic_epi64(s[1],s[6],s[11],0x96);\
 	aux[1] = _mm512_ternarylogic_epi64(aux[1],s[16],s[21],0x96);\
+	\
 	aux[3] = _mm512_ternarylogic_epi64(s[3],s[8],s[13],0x96);\
 	aux[3] = _mm512_ternarylogic_epi64(aux[3],s[18],s[23],0x96);\
+	\
+	xor(aux[7],aux[1],ROT1(aux[3]));/*aux[7] = d2*/\
+	xor(aux[9],aux[3],ROT1(aux[0]));/*aux[9] = d4*/\
+	\
 	aux[4] = _mm512_ternarylogic_epi64(s[4],s[9],s[14],0x96);\
 	aux[4] = _mm512_ternarylogic_epi64(aux[4],s[19],s[24],0x96);\
 	\
-	aux[6] = ROT1(aux[2]);/*aux[6] = d1*/\
-	aux[7] = ROT1(aux[3]);/*aux[7] = d2*/\
-	aux[9] = ROT1(aux[0]);/*aux[9] = d4*/\
-	aux[5] = ROT1(aux[1]);/*aux[5] = d0*/\
-	aux[8] = ROT1(aux[4]);/*aux[8] = d3*/\
+	xor(aux[5],aux[4],ROT1(aux[1]));/*aux[5] = d0*/\
+	xor(aux[8],aux[2],ROT1(aux[4]));/*aux[8] = d3*/\
 	\
-	s[0] = _mm512_ternarylogic_epi64(s[0],aux[4],aux[5],0x96);\
-	s[5] = _mm512_ternarylogic_epi64(s[5],aux[4],aux[5],0x96);\
-	s[10] = _mm512_ternarylogic_epi64(s[10],aux[4],aux[5],0x96);\
-	s[15] = _mm512_ternarylogic_epi64(s[15],aux[4],aux[5],0x96);\
-	s[20] = _mm512_ternarylogic_epi64(s[20],aux[4],aux[5],0x96);\
+	xor(s[0],s[0],aux[5]);\
+	xor(s[5],s[5],aux[5]);\
+	xor(s[10],s[10],aux[5]);\
+	xor(s[15],s[15],aux[5]);\
+	xor(s[20],s[20],aux[5]);\
 	\
-	s[1] = _mm512_ternarylogic_epi64(s[1],aux[6],aux[0],0x96);\
-	s[6] = _mm512_ternarylogic_epi64(s[6],aux[6],aux[0],0x96);\
-	s[11] = _mm512_ternarylogic_epi64(s[11],aux[6],aux[0],0x96);\
-	s[16] = _mm512_ternarylogic_epi64(s[16],aux[6],aux[0],0x96);\
-	s[21] = _mm512_ternarylogic_epi64(s[21],aux[6],aux[0],0x96);\
+	xor(s[1],s[1],aux[6]);\
+	xor(s[6],s[6],aux[6]);\
+	xor(s[11],s[11],aux[6]);\
+	xor(s[16],s[16],aux[6]);\
+	xor(s[21],s[21],aux[6]);\
 	\
-	s[2] = _mm512_ternarylogic_epi64(s[2],aux[7],aux[1],0x96);\
-	s[7] = _mm512_ternarylogic_epi64(s[7],aux[7],aux[1],0x96);\
-	s[12] = _mm512_ternarylogic_epi64(s[12],aux[7],aux[1],0x96);\
-	s[17] = _mm512_ternarylogic_epi64(s[17],aux[7],aux[1],0x96);\
-	s[22] = _mm512_ternarylogic_epi64(s[22],aux[7],aux[1],0x96);\
+	xor(s[2],s[2],aux[7]);\
+	xor(s[7],s[7],aux[7]);\
+	xor(s[12],s[12],aux[7]);\
+	xor(s[17],s[17],aux[7]);\
+	xor(s[22],s[22],aux[7]);\
 	\
-	s[3] = _mm512_ternarylogic_epi64(s[3],aux[8],aux[2],0x96);\
-	s[8] = _mm512_ternarylogic_epi64(s[8],aux[8],aux[2],0x96);\
-	s[13] = _mm512_ternarylogic_epi64(s[13],aux[8],aux[2],0x96);\
-	s[18] = _mm512_ternarylogic_epi64(s[18],aux[8],aux[2],0x96);\
-	s[23] = _mm512_ternarylogic_epi64(s[23],aux[8],aux[2],0x96);\
+	xor(s[3],s[3],aux[8]);\
+	xor(s[8],s[8],aux[8]);\
+	xor(s[13],s[13],aux[8]);\
+	xor(s[18],s[18],aux[8]);\
+	xor(s[23],s[23],aux[8]);\
 	\
-	s[4] = _mm512_ternarylogic_epi64(s[4],aux[9],aux[3],0x96);\
-	s[9] = _mm512_ternarylogic_epi64(s[9],aux[9],aux[3],0x96);\
-	s[14] = _mm512_ternarylogic_epi64(s[14],aux[9],aux[3],0x96);\
-	s[19] = _mm512_ternarylogic_epi64(s[19],aux[9],aux[3],0x96);\
-	s[24] = _mm512_ternarylogic_epi64(s[24],aux[9],aux[3],0x96);\
+	xor(s[4],s[4],aux[9]);\
+	xor(s[9],s[9],aux[9]);\
+	xor(s[14],s[14],aux[9]);\
+	xor(s[19],s[19],aux[9]);\
+	xor(s[24],s[24],aux[9]);\
+	\
 	\
 	aux[1] = ROT(s[6],0x2C);\
 	aux[2] = ROT(s[12],0x2B);\
@@ -280,55 +282,59 @@
 	s[15] = _mm512_ternarylogic_epi64(aux[3],aux[4],aux[0],0xD2);/*s[15] = s23*/\
 	s[2]  = _mm512_ternarylogic_epi64(aux[4],aux[0],aux[1],0xD2);/*s[2] = s24*/\
 	\
-	/*new round*/\
-	\
 	aux[0] = _mm512_ternarylogic_epi64(s[0],s[16],s[7],0x96);\
 	aux[0] = _mm512_ternarylogic_epi64(aux[0],s[23],s[14],0x96);\
+	\
 	aux[2] = _mm512_ternarylogic_epi64(s[24],s[10],s[1],0x96);\
 	aux[2] = _mm512_ternarylogic_epi64(aux[2],s[17],s[8],0x96);\
+	\
+	xor(aux[6],aux[0],ROT(aux[2],0x01));/*aux[6] = d1*/\
+	\
 	aux[1] = _mm512_ternarylogic_epi64(s[12],s[3],s[19],0x96);\
 	aux[1] = _mm512_ternarylogic_epi64(aux[1],s[5],s[21],0x96);\
+	\
 	aux[3] = _mm512_ternarylogic_epi64(s[6],s[22],s[13],0x96);\
 	aux[3] = _mm512_ternarylogic_epi64(aux[3],s[4],s[15],0x96);\
+	\
+	xor(aux[7],aux[1],ROT(aux[3],0x01));/*aux[7] = d2*/\
+	xor(aux[9],aux[3],ROT(aux[0],0x01));/*aux[9] = d4*/\
+	\
 	aux[4] = _mm512_ternarylogic_epi64(s[18],s[9],s[20],0x96);\
 	aux[4] = _mm512_ternarylogic_epi64(aux[4],s[11],s[2],0x96);\
 	\
-	aux[6] = ROT(aux[2],0x01);/*aux[6] = d1*/\
-	aux[7] = ROT(aux[3],0x01);/*aux[7] = d2*/\
-	aux[9] = ROT(aux[0],0x01);/*aux[9] = d4*/\
-	aux[5] = ROT(aux[1],0x01);/*aux[5] = d0*/\
-	aux[8] = ROT(aux[4],0x01);/*aux[8] = d3*/\
+	xor(aux[5],aux[4],ROT(aux[1],0x01));/*aux[5] = d0*/\
+	xor(aux[8],aux[2],ROT(aux[4],0x01));/*aux[8] = d3*/\
 	\
 	\
-	s[0] = _mm512_ternarylogic_epi64(s[0],aux[5],aux[4],0x96);\
-	s[16] = _mm512_ternarylogic_epi64(s[16],aux[5],aux[4],0x96);\
-	s[7] = _mm512_ternarylogic_epi64(s[7],aux[5],aux[4],0x96);\
-	s[23] = _mm512_ternarylogic_epi64(s[23],aux[5],aux[4],0x96);\
-	s[14] = _mm512_ternarylogic_epi64(s[14],aux[5],aux[4],0x96);\
+	xor(s[0],s[0],aux[5]);\
+	xor(s[16],s[16],aux[5]);\
+	xor(s[7],s[7],aux[5]);\
+	xor(s[23],s[23],aux[5]);\
+	xor(s[14],s[14],aux[5]);\
 	\
-	s[12] = _mm512_ternarylogic_epi64(s[12],aux[6],aux[0],0x96);\
-	s[3] = _mm512_ternarylogic_epi64(s[3],aux[6],aux[0],0x96);\
-	s[19] = _mm512_ternarylogic_epi64(s[19],aux[6],aux[0],0x96);\
-	s[5] = _mm512_ternarylogic_epi64(s[5],aux[6],aux[0],0x96);\
-	s[21] = _mm512_ternarylogic_epi64(s[21],aux[6],aux[0],0x96);\
+	xor(s[12],s[12],aux[6]);\
+	xor(s[3],s[3],aux[6]);\
+	xor(s[19],s[19],aux[6]);\
+	xor(s[5],s[5],aux[6]);\
+	xor(s[21],s[21],aux[6]);\
 	\
-	s[24] = _mm512_ternarylogic_epi64(s[24],aux[7],aux[1],0x96);\
-	s[10] = _mm512_ternarylogic_epi64(s[10],aux[7],aux[1],0x96);\
-	s[1] = _mm512_ternarylogic_epi64(s[1],aux[7],aux[1],0x96);\
-	s[17] = _mm512_ternarylogic_epi64(s[17],aux[7],aux[1],0x96);\
-	s[8] = _mm512_ternarylogic_epi64(s[8],aux[7],aux[1],0x96);\
+	xor(s[24],s[24],aux[7]);\
+	xor(s[10],s[10],aux[7]);\
+	xor(s[1],s[1],aux[7]);\
+	xor(s[17],s[17],aux[7]);\
+	xor(s[8],s[8],aux[7]);\
 	\
-	s[6] = _mm512_ternarylogic_epi64(s[6],aux[8],aux[2],0x96);\
-	s[22] = _mm512_ternarylogic_epi64(s[22],aux[8],aux[2],0x96);\
-	s[13] = _mm512_ternarylogic_epi64(s[13],aux[8],aux[2],0x96);\
-	s[4] = _mm512_ternarylogic_epi64(s[4],aux[8],aux[2],0x96);\
-	s[15] = _mm512_ternarylogic_epi64(s[15],aux[8],aux[2],0x96);\
+	xor(s[6],s[6],aux[8]);\
+	xor(s[22],s[22],aux[8]);\
+	xor(s[13],s[13],aux[8]);\
+	xor(s[4],s[4],aux[8]);\
+	xor(s[15],s[15],aux[8]);\
 	\
-	s[18] = _mm512_ternarylogic_epi64(s[18],aux[9],aux[3],0x96);\
-	s[9] = _mm512_ternarylogic_epi64(s[9],aux[9],aux[3],0x96);\
-	s[20] = _mm512_ternarylogic_epi64(s[20],aux[9],aux[3],0x96);\
-	s[11] = _mm512_ternarylogic_epi64(s[11],aux[9],aux[3],0x96);\
-	s[2] = _mm512_ternarylogic_epi64(s[2],aux[9],aux[3],0x96);\
+	xor(s[18],s[18],aux[9]);\
+	xor(s[9],s[9],aux[9]);\
+	xor(s[20],s[20],aux[9]);\
+	xor(s[11],s[11],aux[9]);\
+	xor(s[2],s[2],aux[9]);\
 	\
 	\
 	aux[1] = ROT(s[3],0x2C);\
@@ -413,7 +419,7 @@ void print_128(__m128i x){
     printf("\n 0 = %8.16lx\t  1 = %8.16lx\t \n", c[0],c[1]);
 }
 
-int keccak(char **in_e, int inlen, uint8_t **md, int ra, int out)
+int keccak(char **in_e, int inlen, uint8_t **md, int r)
 {
    __m512i aux[12];
    int i;
@@ -449,55 +455,111 @@ const ALIGN uint64_t RC[200] = {
   const __m512i l2 = _mm512_set_epi64(11,10,9,8,3,2,1,0);
   const __m512i l3 = _mm512_set_epi64(15,14,13,12,7,6,5,4);
 
-  ALIGN uint8_t temP[8][200];
-  int j;
-  __m512i s[25], t[8],r[8];
-  __m128i auxl[6];
-  __m256i auxM;
+  ALIGN uint8_t temP[8][160];
+  int k=0,j,l=0;
+  __m512i s[28];
+  __m128i auxl[5];
+  __m256i auxM,auxM1, auxM2, auxM3, auxM4;
+  char* con[32];
   char* in[8];
-  int rt;
+  int ti,tf,g,gf;
   
   for(i=0;i<8;i++){
     in[i]=in_e[i];
   }
 
-  int rsiz = 200-2*ra;
-  rt = (rsiz/64);
+  int rsiz = 200-2*r;
+  
   init_S_zeros(j);
+
   for(;inlen >=rsiz; inlen -=rsiz){
-	  loadM(j,rt,in);
-		  keccakf(s); 
+	  loadM(j,2,in);
+	 /* for(i=0;i<25;i++)
+		  print_512(s[i]);
+	  getchar();*/
+	  keccakf(s); 
 
 	  for(i=0;i<8;i++){
 	      in[i] += rsiz;
     	  }
   }
-/*   for(i=0;i<25;i++)
-		  print_512(s[i]);
-	  getchar();
-*/
+  
   for(i=0;i<8;i++){
-    memset(temP[i], 0, 168*sizeof(uint8_t));
+    memset(temP[i], 0, 144*sizeof(uint8_t));
     memcpy(temP[i], in[i], inlen);
     temP[i][inlen] = 0x06;
     temP[i][rsiz - 1] |= 0x80;
   }
-  loadM(j,rt,temP); 
+  loadM(j,2,temP); 
   keccakf(s);
+  
+/*  for(i=0;i<25;i++)
+	print_512(s[i]);
+	getchar();
+*/
+    back;
 
-  back(j,(rt*2)+1,temP);
 
-  if(rsiz < out){
-  	for(i=0;i<8;i++)
-		memcpy(md[i], temP[i], rsiz);
-  	out -= rsiz;
-  	back(j,(rt*2)+1,temP);
-  	keccakf(s);
-  }
-  for(i=0;i<8;i++)
-		memcpy(md[i], temP[i], rsiz);
+  store(md[0],0,_mm512_castsi512_si256(aux[4]));
+  store(md[1],0,_mm512_castsi512_si256(aux[6]));
+  store(md[2],0,_mm512_extracti64x4_epi64(aux[4],1));
+  store(md[3],0,_mm512_extracti64x4_epi64(aux[6],1));
+
+  store(md[4],0,_mm512_castsi512_si256(aux[5]));
+  store(md[5],0,_mm512_castsi512_si256(aux[7]));
+  store(md[6],0,_mm512_extracti64x4_epi64(aux[5],1));
+  store(md[7],0,_mm512_extracti64x4_epi64(aux[7],1));
+/*	 for(i=0;i<8;i++){
+		 for(j=0;j<4;j++){
+                printf("%d: %.14lx ", j,((uint64_t*)md[i])[j]);
+        }
+        printf("\n");
+
+	 }
+	//	  print_512(aux[i]);
+		  
+	  getchar();
+*/
+
+
+//  store(md[7],0,_mm512_extracti64x4_epi64(aux[7],1));
+/*    case 104:
+      back(j,2);
+      store(md[0],0,s[0]);
+      store(md[0],1,s[4]);
+      store(md[1],0,s[1]);
+      store(md[1],1,s[5]);
+      store(md[2],0,s[2]);
+      store(md[2],1,s[6]);
+      store(md[3],0,s[3]);
+      store(md[3],1,s[7]);
+      break;
+    case 72:
+      back(j,2);
+      store(md[0],0,s[0]);
+      store(md[0],1,s[4]);
+      store(md[1],0,s[1]);
+      store(md[1],1,s[5]);
+      store(md[2],0,s[2]);
+      store(md[2],1,s[6]);
+      store(md[3],0,s[3]);
+      store(md[3],1,s[7]);
+      break;*/
+  
 
   return 0;
 }
+
+// int Keccak_openmp(char ** in, int inlen, uint8_t ***md, int rsiz)
+// {
+//   int i;
+//   #pragma omp parallel for num_threads(t)
+//      for(i=0;i<t;i++){
+//         keccak(in, inlen,md[i]);
+//      }
+// }
+
+//
+			
 
 

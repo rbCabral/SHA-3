@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define BENCH 100
+#define BENCH 1000
 #define ALIGN __attribute__ ((aligned (32)))
 
 #define KECCAK256

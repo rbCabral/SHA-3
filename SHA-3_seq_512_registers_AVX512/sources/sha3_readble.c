@@ -80,12 +80,13 @@ void keccakf(uint64_t st[25], int rounds)
             for (i = 0; i < 5; i++)
                 st[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
         }
-//	for(i=0;i<25;i++)
-//		printf("%d \t %.16lx \t", i,st[i]);
-//	exit(1);
-
+/*	for(i=0;i<25;i++)
+		printf("%d \t %.16lx\n ", i,st[i]);
+	exit(1);
+*/
         //  Iota
         st[0] ^= keccakf_rndc[round];
+
     }
 }
 
@@ -105,6 +106,12 @@ int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
     for ( ; inlen >= rsiz; inlen -= rsiz, in += rsiz) {
         for (i = 0; i < rsizw; i++)
             st[i] ^= ((uint64_t *) in)[i];
+/*
+	for(i=0;i<25;i++)
+		printf("%d \t %.16lx\n ", i,st[i]);
+	getchar();
+*/
+
         keccakf(st, KECCAK_ROUNDS);
     }
 

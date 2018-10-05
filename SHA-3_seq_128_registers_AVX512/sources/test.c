@@ -68,21 +68,21 @@ int main(int argc, char **argv)
     }else{
       printf("Error!!\n");
     }
-/*    
+    
    printf("Keccak_512 \t\t\t");
     
    memset(md, 0, 64*sizeof(uint8_t));
    memset(md1, 0, 64*sizeof(uint8_t));
    
-   keccak(msgstr, inlen,md1,72);
-   keccak_std(msgstr, inlen,md,64);
+   keccak_std((const uint8_t*)msgstr, inlen,md,64);
+   keccak((const uint8_t*)msgstr, inlen,md1,64);
    
    if(memcmp(md,md1,64) == 0){
      printf("ok!\n");
     }else{
       printf("Error!!\n");
     }    
-  */  
+   
     printf("<------------------------------------------------------>\n\n\n");    
     
 

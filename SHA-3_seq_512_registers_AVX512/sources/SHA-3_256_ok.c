@@ -14,36 +14,12 @@
 #define load(M)	\
 	x[0] = _mm512_xor_si512(x[0],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);\
 	M=M + 40;\
-	if(rsiz == 72){\
-		x[1] = _mm512_xor_si512(x[1],_mm512_maskz_loadu_epi64(0xF,(__m512i*)M)+0);	\
-		M+=32;\
-	}else if(rsiz >=104){\
-		x[1] = _mm512_xor_si512(x[1],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);	\
-		M+=40;\
-	}\
-	if(rsiz == 104){\
-		x[2] = _mm512_xor_si512(x[2],_mm512_maskz_loadu_epi64(0x07,(__m512i*)M)+0);	\
-		M+=24;\
-	}else if (rsiz >= 136){\
-		x[2] = _mm512_xor_si512(x[2],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);	\
-		M+=40;\
-	}\
-	if(rsiz == 136){\
-		x[3] = _mm512_xor_si512(x[3],_mm512_maskz_loadu_epi64(0x03,(__m512i*)M)+0);	\
-		M+=16;\
-	}else if (rsiz == 144){\
-		x[3] = _mm512_xor_si512(x[3],_mm512_maskz_loadu_epi64(0x07,(__m512i*)M)+0);	\
-		M+=24;\
-	}else if(rsiz == 168){\
-		x[3] = _mm512_xor_si512(x[3],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);	\
-		M+=40;\
-		x[4] = _mm512_xor_si512(x[4],_mm512_maskz_loadu_epi64(0x01,(__m512i*)M)+0);	\
-		M+=8;\
-	}\
-
-
-
-
+	x[1] = _mm512_xor_si512(x[1],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);	\
+	M+=40;\
+	x[2] = _mm512_xor_si512(x[2],_mm512_maskz_loadu_epi64(0x1F,(__m512i*)M)+0);	\
+	M+=40;\
+	x[3] = _mm512_xor_si512(x[3],_mm512_maskz_loadu_epi64(0x03,(__m512i*)M)+0);	\
+	M+=16;\
 	
 
 void print_512(__m512i x){
@@ -93,15 +69,25 @@ void keccakF(__m512i* x, int rnd){
 	uint64_t* rc = (uint64_t*)RC;
 	int i;
 	__m512i c1,c2,c3,c4,c5;
+/*	print_512(x[0]);
+	print_512(x[1]);
+	print_512(x[2]);
+	print_512(x[3]);
+	print_512(x[4]);*/
 
 	for(i=0;i<24;i++){
 
 	/*theta step*/
+	//c1 = _mm512_xor_si512(x[0],x[1]);
+	//c2 = _mm512_xor_si512(x[2],x[3]);
+	//c1 = _mm512_xor_si512(c1,x[4]);
 	c1 = _mm512_ternarylogic_epi64(x[0],x[1],x[2],0x96);
 	c1 = _mm512_ternarylogic_epi64(c1,x[3],x[4],0x96);
 
+	//c1 = _mm512_xor_si512(c1,c2);
 	c2 = _mm512_permutexvar_epi64(p11, c1);
         c1 = _mm512_permutexvar_epi64(p12, c1);
+//        c1 = _mm512_xor_si512(c2,_mm512_rol_epi64(c1,0x01));
         c1 = _mm512_rol_epi64(c1,0x01);
 
 	x[0] = _mm512_ternarylogic_epi64(c1,c2,x[0],0x96);
@@ -109,6 +95,11 @@ void keccakF(__m512i* x, int rnd){
 	x[2] = _mm512_ternarylogic_epi64(c1,c2,x[2],0x96);
 	x[3] = _mm512_ternarylogic_epi64(c1,c2,x[3],0x96);
 	x[4] = _mm512_ternarylogic_epi64(c1,c2,x[4],0x96);
+	/*x[0] = _mm512_xor_si512(c1,x[0]);
+	x[1] = _mm512_xor_si512(c1,x[1]);
+	x[2] = _mm512_xor_si512(c1,x[2]);
+	x[3] = _mm512_xor_si512(c1,x[3]);
+	x[4] = _mm512_xor_si512(c1,x[4]);*/
 	/*theta step*/
 
 
@@ -119,11 +110,14 @@ void keccakF(__m512i* x, int rnd){
 	x[3] = _mm512_rolv_epi64(x[3],r3);/*13-3-18-8-23*/
 	x[4] = _mm512_rolv_epi64(x[4],r4);/*4-19-9-24-14*/
 
-	x[0] = _mm512_permutexvar_epi64(t0, x[0]);
+
+
+        x[0] = _mm512_permutexvar_epi64(t0, x[0]);
         x[1] = _mm512_permutexvar_epi64(t1, x[1]);
         x[2] = _mm512_permutexvar_epi64(t2, x[2]);
         x[3] = _mm512_permutexvar_epi64(t3, x[3]);
         x[4] = _mm512_permutexvar_epi64(t4, x[4]);
+	
 	
 	/*rho and pi step*/
 
@@ -135,28 +129,28 @@ void keccakF(__m512i* x, int rnd){
 	x[2] = _mm512_ternarylogic_epi64(x[2],x[3],x[4],0xD2);
 	x[3] = _mm512_ternarylogic_epi64(x[3],x[4],c1,0xD2);
 	x[4] = _mm512_ternarylogic_epi64(x[4],c1,c2,0xD2);
+	/*chi step*/
 
 	c1  = _mm512_permutex2var_epi64(x[0],p1,x[1]);/*15-20-11-10-6-5-1-0*/
 	c2  = _mm512_permutex2var_epi64(x[2],p2,x[3]);/*13-12-22-17-3-2-8-7*/
-
+	c5  = _mm512_permutex2var_epi64(x[1],p3,x[3]);/*x-x-x-x-18-16-23-21*/
 	c3  = _mm512_mask_blend_epi64(0xCC,c1,c2);/*13-12-11-10-3-2-1-0*/
 	c4  = _mm512_mask_blend_epi64(0x33,c1,c2);/*15-20-22-17-6-5-8-7*/
 
-	c5  = _mm512_permutex2var_epi64(x[1],p3,x[3]);/*x-x-x-x-18-16-23-21*/
 	x[0]= _mm512_permutex2var_epi64(c3,p4,x[4]);/*x-x-x-4-3-2-1-0*/
-	
 	x[1]= _mm512_permutex2var_epi64(c4,p5,x[4]);/*x-x-x-9-8-7-6-5*/
 	x[2]= _mm512_permutex2var_epi64(c3,p6,x[4]);/*x-x-x-14-13-12-11-10*/
 
+//	print_512(x[4]);
+
+	
 	c2  = _mm512_mask_blend_epi64(0x10,c4,x[4]);/*x-20-22-24-x-x-x-x*/
 	c3  = _mm512_mask_blend_epi64(0x0F,c4,c5);/*15-x-x-17-18-16-x-x*/
-
 	x[3]= _mm512_permutex2var_epi64(c3,p7,x[4]);/*x-x-x-19-18-17-16-15*/
 	x[4]= _mm512_permutex2var_epi64(c2,p8,c5);/*x-x-x-24-23-22-21-20*/
-
-
-	/*chi step*/
 	
+	
+
 
 	/*iota step*/
 	c1 = _mm512_maskz_loadu_epi64(0x01,(__m512i*)rc);
@@ -165,8 +159,12 @@ void keccakF(__m512i* x, int rnd){
 
 	/*iota step*/
 
-
 	}
+/*	print_512(x[0]);
+	print_512(x[1]);
+	print_512(x[2]);
+	print_512(x[3]);
+	print_512(x[4]);*/
 }
 
 int keccak(const uint8_t *in, int inlen, uint8_t *md, int r){
@@ -182,17 +180,18 @@ int keccak(const uint8_t *in, int inlen, uint8_t *md, int r){
     x[2] = _mm512_setzero_si512();
     x[3] = _mm512_setzero_si512();
     x[4] = _mm512_setzero_si512();
-   int rsiz = 200 - 2*r;
+   int rsiz = 200 - 2*32;
    for ( ; inlen >= rsiz; inlen -= rsiz) {
-         load(in_temp);
-/*	 print_512(x[0]);
-	 print_512(x[1]);
-	 print_512(x[2]);
-	 print_512(x[3]);
-	 print_512(x[4]);
-	 getchar();*/
-    	 keccakF(x, 24);
+            load(in_temp);
+        	keccakF(x, 24);
+//	exit(1);
    }
+/*   	print_512(x[0]);
+	print_512(x[1]);
+	print_512(x[2]);
+	print_512(x[3]);
+	print_512(x[4]);*/
+
 
    // last block and padding
     memcpy(temp, in_temp, inlen);
@@ -203,21 +202,8 @@ int keccak(const uint8_t *in, int inlen, uint8_t *md, int r){
     t = temp;
     load(t);
     keccakF(x, 24);
-   if(rsiz == 144 || rsiz == 168) 
-	 _mm512_mask_storeu_epi32((__m512*)md,0x7F,x[0]);
-   else if(rsiz == 136)
-   	_mm512_mask_storeu_epi64((__m512*)md,0xF,x[0]);
-   else if (rsiz == 104){
-   	_mm512_mask_storeu_epi64((__m512*)md,0x1F,x[0]);
-	 md+=40;
-    	_mm512_mask_storeu_epi64((__m512*)md,0x01,x[1]);
-   }else if(rsiz == 72){
-	_mm512_mask_storeu_epi64((__m512*)md,0x1F,x[0]);
-	 md+=40;
-    	_mm512_mask_storeu_epi64((__m512*)md,0x0F,x[1]);
-   }
-
-
+   
+    _mm512_storeu_si512((__m512*)md,x[0]);
     
     return 0;
 }

@@ -44,6 +44,13 @@ const int keccakf_piln[24] =
 
 // update the state with given number of rounds
 
+static void printState(uint64_t* x){
+	int i;
+	for(i=0;i<25;i++){
+		printf("%8.16lX\n", x[i]);
+	}
+}
+
 void keccakf(uint64_t st[25], int rounds)
 {
     int i, j, round;
@@ -100,6 +107,10 @@ int keccak_std(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
         for (i = 0; i < rsizw; i++)
             st[i] ^= ((uint64_t *) in)[i];
         keccakf(st, KECCAK_ROUNDS);
+//	printf("64\n\n");
+//	printState(st);
+//	exit(1);
+
     }
 
     // last block and padding

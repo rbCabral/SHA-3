@@ -91,9 +91,30 @@ int main(int argc, char **argv)
     printf("\nSequential implementation using 128-bit registers.\n\n");    
     printf("<------------------------------------------------------>\n");    
     
+    printf("\nSHA3-224.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,28);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+    
     printf("\nSHA3-256.\n");    
     BENCH_FUNCTION(keccak,msgstr, inlen,md,32);
     printf("cycles per bytes :%f\n",(double)total/inlen);
+    
+    printf("\nSHA3-384.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,48);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+
+    printf("\nSHA3-512.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,64);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+
+    printf("\nSHAKE128.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,16);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+
+    printf("\nSHAKE256.\n");    
+    BENCH_FUNCTION(keccak,msgstr, inlen,md,32);
+    printf("cycles per bytes :%f\n",(double)total/inlen);
+
     
     printf("<------------------------------------------------------>\n\n\n");    
 
